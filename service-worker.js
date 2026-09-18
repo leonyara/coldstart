@@ -1,4 +1,4 @@
-var CACHE_VERSION = "coldstart-v1";
+var CACHE_VERSION = "coldstart-v2";
 var APP_SHELL = [
   "./",
   "./index.html",
@@ -12,13 +12,29 @@ var APP_SHELL = [
   "./icons/apple-touch-icon.png",
   "./icons/grain.png"
 ];
-var FONT_CACHE = "coldstart-fonts-v1";
+var FONT_CACHE = "coldstart-fonts-v2";
+var GOOGLE_FONTS_CSS = "https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap";
+// Pinned so both fonts are guaranteed offline right after install, instead of
+// waiting on a first runtime fetch to populate the cache. Self-healing if
+// Google ever rotates these hashes: the fetch handler below re-caches on the
+// next successful online load.
+var GOOGLE_FONT_FILES = [
+  "https://fonts.gstatic.com/s/pressstart2p/v16/e3t4euO8T-267oIAQAu6jDQyK3nVivM.woff2",
+  "https://fonts.gstatic.com/s/spacemono/v17/i7dPIFZifjKcF5UAWdDRYEF8RQ.woff2",
+  "https://fonts.gstatic.com/s/spacemono/v17/i7dMIFZifjKcF5UAWdDRaPpZUFWaHg.woff2"
+];
 
 self.addEventListener("install", function(event){
   event.waitUntil(
-    caches.open(CACHE_VERSION).then(function(cache){
-      return cache.addAll(APP_SHELL);
-    }).then(function(){ return self.skipWaiting(); })
+    Promise.all([
+      caches.open(CACHE_VERSION).then(function(cache){ return cache.addAll(APP_SHELL); }),
+      caches.open(FONT_CACHE).then(function(cache){
+        return Promise.all([
+          fetch(GOOGLE_FONTS_CSS, {mode:"no-cors"}).then(function(res){ return cache.put(GOOGLE_FONTS_CSS, res); }).catch(function(){}),
+          cache.addAll(GOOGLE_FONT_FILES).catch(function(){})
+        ]);
+      })
+    ]).then(function(){ return self.skipWaiting(); })
   );
 });
 
