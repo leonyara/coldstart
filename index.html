@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>COLDSTART</title>
+<meta name="theme-color" content="#0a1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="COLDSTART">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="crt-overlay"></div>
+<div class="grain-overlay"></div>
+<div class="vignette"></div>
+<div class="flash-overlay" id="flashOverlay"></div>
+<div class="combo-popup" id="comboPopup"></div>
+<div class="achievement-popup" id="achievementPopup">
+  <div class="ap-label">★ ACHIEVEMENT UNLOCKED ★</div>
+  <div class="ap-icon" id="apIcon"></div>
+  <div class="ap-name" id="apName"></div>
+</div>
+<div class="modal-overlay" id="deleteModal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+  <div class="modal-box pixel-frame">
+    <div class="modal-title" id="deleteModalTitle">DELETE ENTRY?</div>
+    <div class="modal-text">This can't be undone.</div>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn" id="deleteCancelBtn">CANCEL</button>
+      <button type="button" class="modal-btn danger" id="deleteConfirmBtn">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<div class="cabinet">
+  <div class="rivet tl"></div><div class="rivet tr"></div><div class="rivet bl"></div><div class="rivet br"></div>
+  <div id="app">
+    <div class="star-layer" id="starLayer"></div>
+    <div class="grid-horizon"></div>
+    <div class="blob-layer"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
+    <div class="particle-layer ambient" id="particleLayer"></div>
+
+    <header>
+      <div class="sun-disc" id="sunDisc"></div>
+      <div class="marquee-bulbs" id="marqueeBulbs"></div>
+      <div class="logo-row">
+        <div class="logo pixel">COLD<span>START</span></div>
+        <div class="header-right">
+          <button type="button" id="soundToggle" class="sound-toggle" aria-label="Toggle sound">🔊</button>
+          <div class="sound-hint" id="soundHint">sound's off by default — tap to turn on</div>
+          <div class="streak-pill" id="streakPill"><span id="streakIcon">🔥</span> <b id="streakNum">0</b><span id="streakSuffix"> day streak</span></div>
+        </div>
+      </div>
+      <div class="cabinet-sub pixel">COLD APPROACH TRAINING CABINET</div>
+      <div class="rank-block">
+        <div class="rank-name pixel" id="rankName">NULL</div>
+        <div class="xp-num"><b id="xpTotal">0</b> XP</div>
+      </div>
+      <div class="climate-label">CLIMATE: <b id="climateName">DEEP FREEZE</b></div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+      <div class="next-rank" id="nextRankLabel">50 XP to FROZEN</div>
+    </header>
+
+    <main>
+      <section class="view active" id="view-log">
+        <h2 class="section-title">QUICK LOG</h2>
+        <div id="insertCoin" class="insert-coin">◈ PRESS START — LOG YOUR FIRST APPROACH ◈</div>
+        <div class="card pixel-frame">
+          <label class="field-label">LOCATION</label>
+          <div class="chip-row" id="locChips">
+            <button type="button" class="chip" data-val="street">Street</button>
+            <button type="button" class="chip" data-val="mall">Mall / Retail</button>
+            <button type="button" class="chip" data-val="cafe">Cafe / Bar (day)</button>
+            <button type="button" class="chip" data-val="transit">Transit</button>
+            <button type="button" class="chip" data-val="night">Night / Club</button>
+            <button type="button" class="chip" data-val="other">Other</button>
+          </div>
+          <label class="field-label">DIFFICULTY</label>
+          <div class="chip-row" id="diffChips">
+            <button type="button" class="chip" data-val="solo">Solo target</button>
+            <button type="button" class="chip" data-val="small">Small group (2-3)</button>
+            <button type="button" class="chip" data-val="large">Large group (4+)</button>
+          </div>
+          <label class="field-label">OUTCOME</label>
+          <div class="chip-row" id="outChips">
+            <button type="button" class="chip" data-val="opened">Opened only</button>
+            <button type="button" class="chip" data-val="short">Short convo</button>
+            <button type="button" class="chip" data-val="long">Long convo</button>
+            <button type="button" class="chip outcome-contact" data-val="contact">Got contact</button>
+            <button type="button" class="chip outcome-date" data-val="date">Set a date</button>
+          </div>
+          <label class="field-label">ANXIETY BEFORE APPROACHING</label>
+          <input type="range" min="1" max="5" value="3" id="anxSlider">
+          <div class="anx-labels"><span>Calm</span><span>Neutral</span><span>High fear</span></div>
+          <label class="field-label" style="margin-top:16px;">NOTES (OPTIONAL)</label>
+          <textarea id="notesInput" placeholder="what happened, what you'd change next time..."></textarea>
+          <button class="submit-btn" id="submitBtn">LOG APPROACH</button>
+          <button type="button" class="cancel-edit" id="cancelEdit" style="display:none;">cancel edit</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-map">
+        <h2 class="section-title">NEURAL MAP</h2>
+        <div class="map-wrap pixel-frame">
+          <div class="particle-layer" id="mapParticleLayer" style="z-index:0;"></div>
+          <div class="map-sweep"></div>
+          <div class="map-hud" id="mapHud">NODES <b id="hudNodes">0</b><br>LINKS <b id="hudLinks">0</b></div>
+          <div class="map-zoom-controls">
+            <button type="button" id="zoomInBtn" aria-label="Zoom in">+</button>
+            <button type="button" id="zoomResetBtn" aria-label="Reset view">⊙</button>
+            <button type="button" id="zoomOutBtn" aria-label="Zoom out">−</button>
+          </div>
+          <div id="mapEmpty" class="empty-state" style="display:none;">
+            <div class="big">◌</div>
+            No nodes yet.<br>Log your first approach to start training the network.
+          </div>
+          <svg id="neuralSvg" viewBox="0 0 600 600" style="width:100%; display:block; position:relative; z-index:1; touch-action:none; cursor:grab;"></svg>
+        </div>
+        <div class="map-legend">
+          <span><i class="dot" style="background:#4beeff;"></i>Opened</span>
+          <span><i class="dot" style="background:#7dffea;"></i>Convo</span>
+          <span><i class="dot" style="background:#ff3ec8;"></i>Contact</span>
+          <span><i class="dot" style="background:#ffb347;"></i>Date set</span>
+        </div>
+        <div class="map-legend" style="margin-top:4px;"><span>drag to pan &middot; scroll or pinch to zoom</span></div>
+      </section>
+
+      <section class="view" id="view-stats">
+        <h2 class="section-title">MODEL REPORT</h2>
+        <div class="hiscore-card pixel-frame">
+          <div class="hiscore-title">★ HIGH SCORE ★</div>
+          <div class="hiscore-row"><span>BEST STREAK</span><span class="val" id="hsStreak">0</span></div>
+          <div class="hiscore-row"><span>BEST DAY</span><span class="val" id="hsDay">0</span></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box pixel-frame"><div class="num" id="statTotal">0</div><div class="lbl">TOTAL APPROACHES</div></div>
+          <div class="stat-box pixel-frame"><div class="num" id="statConv">0%</div><div class="lbl">CONVERSION RATE</div></div>
+          <div class="stat-box pixel-frame"><div class="num" id="statBestTime">--</div><div class="lbl">PEAK HOURS</div></div>
+          <div class="stat-box pixel-frame"><div class="num" id="statMomentum">0%</div><div class="lbl">MOMENTUM</div></div>
+          <div class="stat-box pixel-frame wide"><div class="num" id="statAnxietyTrend">--</div><div class="lbl">ANXIETY TREND (EARLY → RECENT)</div></div>
+        </div>
+        <div class="card pixel-frame">
+          <label class="field-label">LAST 7 DAYS</label>
+          <div class="bar-chart" id="weekChart"></div>
+        </div>
+        <div class="card pixel-frame" id="anxietyChartCard" style="display:none;">
+          <label class="field-label">ANXIETY OVER TIME (LAST 20 LOGS)</label>
+          <div class="bar-chart" id="anxietyChart"></div>
+          <div class="anx-labels" style="margin-top:6px;"><span>calmer</span><span>more afraid</span></div>
+        </div>
+        <h2 class="section-title" style="margin-top:24px;">ACHIEVEMENTS</h2>
+        <div class="ach-grid" id="achGrid"></div>
+
+        <h2 class="section-title" style="margin-top:24px;">TRAINING LOG &amp; BACKUP</h2>
+        <div class="card pixel-frame">
+          <div class="data-actions">
+            <button type="button" class="data-btn" id="exportBtn">⬇ EXPORT BACKUP</button>
+            <button type="button" class="data-btn" id="importBtn">⬆ RESTORE BACKUP</button>
+          </div>
+          <input type="file" id="importFile" accept="application/json" style="display:none;">
+          <div id="logList"></div>
+        </div>
+      </section>
+    </main>
+
+    <nav>
+      <button class="active" data-view="log"><span class="ico">◎</span>LOG</button>
+      <button data-view="map"><span class="ico">◈</span>NEURAL MAP</button>
+      <button data-view="stats"><span class="ico">▤</span>STATS</button>
+    </nav>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
