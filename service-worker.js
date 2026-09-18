@@ -47,7 +47,9 @@ self.addEventListener("fetch", function(event){
         return cache.match(req).then(function(cached){
           if(cached) return cached;
           return fetch(req).then(function(res){
-            if(res && res.status === 200) cache.put(req, res.clone());
+            // The Google Fonts CSS is fetched without `crossorigin`, so it
+            // comes back opaque (status 0) even on success — still cacheable.
+            if(res && (res.status === 200 || res.type === "opaque")) cache.put(req, res.clone());
             return res;
           }).catch(function(){ return cached; });
         });
